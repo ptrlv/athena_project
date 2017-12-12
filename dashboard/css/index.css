@@ -1,0 +1,6 @@
+/* select DataTable cells which are in the leftmost column and colour them as links */
+.react-grid-Cell[style*="left: 0px;"] {
+    cursor: pointer;
+    color: #1EAEDB;
+    text-decoration: underline;
+}

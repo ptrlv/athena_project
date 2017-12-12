@@ -62,7 +62,7 @@ def generate_datatable():
         id="queue-datatable",
         #min_height="100%",
     )
-    print(dir(table))
+    
     return table
 
 @app.callback(

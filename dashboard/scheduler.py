@@ -55,35 +55,20 @@ def run_query(query_id, bucket, database="apfhistorylong"):
             execution["QueryExecution"]["Statistics"]["EngineExecutionTimeInMillis"],
         )
     )
-    
-    
-# queue comparison 30d
-job1 = scheduler.add_job(
-    run_query, "interval", seconds=600,
-    args=("00bb4f20-25b0-4d48-a16a-57870c7cbc2c", "aws-athena-query-results-lancs-30d"),
-)
 
-# jobs per hour in past 24 hours
-job2 = scheduler.add_job(
-    run_query, "interval", seconds=600,
-    args=("5e1549f7-f2a5-40ee-9345-cb488c0feabc", "aws-athena-query-results-lancs-24h"),
-)
 
-# jobs per day in past 30 days
-job3 = scheduler.add_job(
-    run_query, "interval", seconds=600,
-    args=("c50de2b4-dc45-4f1d-af4b-ee10b5561bfa", "aws-athena-query-results-lancs-history-30d"),
-)
+queries = [
+     # query id                               bucket
+    ("00bb4f20-25b0-4d48-a16a-57870c7cbc2c", "aws-athena-query-results-lancs-30d"),         # queue comparison 30d
+    ("5e1549f7-f2a5-40ee-9345-cb488c0feabc", "aws-athena-query-results-lancs-24h"),         # jobs per hour in past 24 hours
+    ("c50de2b4-dc45-4f1d-af4b-ee10b5561bfa", "aws-athena-query-results-lancs-history-30d"), # jobs per day in past 30 days
+]
+
+for query_id, bucket in queries:
+    scheduler.add_job(run_query, "interval", seconds=600, args=(query_id, bucket))
 
 scheduler.start()
 
-"""
-run_query("00bb4f20-25b0-4d48-a16a-57870c7cbc2c",
-          "aws-athena-query-results-lancs-30d")
-
-run_query("5e1549f7-f2a5-40ee-9345-cb488c0feabc",
-          "aws-athena-query-results-lancs-24h")
-
-run_query("c50de2b4-dc45-4f1d-af4b-ee10b5561bfa",
-            "aws-athena-query-results-lancs-history-30d")
-"""
+def update_now():
+    for query_id, bucket in queries:
+        run_query(query_id, bucket)

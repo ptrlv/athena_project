@@ -6,8 +6,6 @@ import dash_table_experiments as dt
 from werkzeug.routing import Map, Rule
 from werkzeug.routing import NotFound, RequestRedirect
 
-import datasources
-
 routing_map = Map([
     Rule("/", endpoint="index"),
     Rule("/queue/<string:queue_name>/", endpoint="queue"),
@@ -22,15 +20,21 @@ from apps import queue_app
 from apps import debug_app
 
 app.layout = html.Div([
+    # Stores url
     dcc.Location(id='url', refresh=False),
+    
     # Hidden data table to force it to send the data table js components
     # https://github.com/plotly/dash-table-experiments/issues/18
     html.Div(dt.DataTable(rows=[{}]), style={"display": "none"}),
+    
+    # Header bar
     html.Div([
         dcc.Link("Index", href="/", style={"margin":"5px"}),
         dcc.Link("Debug", href="/debug/", style={"margin":"5px"}),
         html.Hr(style={"margin": "0px", "margin-top": "2px", "margin-bottom":"10px"}),
     ], style={"width": "100%"}),
+    
+    # Div to load page content into
     html.Div(id='page-content')
 ])
 

@@ -149,9 +149,7 @@ def generate_plot_30d(queue_name):
 def generate_layout(queue_name):
     plot = generate_plot_24h(queue_name)
     if plot is None:
-        return [dcc.Link("Index", href="/"),
-                dcc.Link("Debug", href="/debug/"),
-                html.Div("No queue with that name"),]
+        return [html.Div("No queue with that name"),]
     
     plot2 = generate_plot_30d(queue_name)
     
