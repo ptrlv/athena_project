@@ -66,7 +66,6 @@ queries = [
     ("4e8fb630-f56e-4217-a4fc-3107b8fe6cb0", "aws-athena-query-results-lancs-all-48h"),     # queue, duration, wallclock columns from past 48 hours
 ]
 
-from app import logger
 
 
 for query_id, bucket in queries:
