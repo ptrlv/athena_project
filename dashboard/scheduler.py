@@ -1,15 +1,15 @@
 import time
+import threading
 from collections import namedtuple
 from datetime import datetime
 from dateutil.tz import tzutc
 
 import boto3
-
 athena = boto3.client("athena")
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from functools import partial
+from datasources import Datasources
 
+from apscheduler.schedulers.background import BackgroundScheduler
 scheduler = BackgroundScheduler()
 
 QueryExecutionResult = namedtuple("QueryExecutionResult", ["name", "query_id", "result_file", "time", "status", "bytes_scanned", "execution_duration"])
@@ -58,17 +58,49 @@ def run_query(query_id, bucket, database="apfhistorylong"):
 
 
 queries = [
-     # query id                               bucket
+    # query id                                bucket
     ("00bb4f20-25b0-4d48-a16a-57870c7cbc2c", "aws-athena-query-results-lancs-30d"),         # queue comparison 30d
     ("5e1549f7-f2a5-40ee-9345-cb488c0feabc", "aws-athena-query-results-lancs-24h"),         # jobs per hour in past 24 hours
     ("c50de2b4-dc45-4f1d-af4b-ee10b5561bfa", "aws-athena-query-results-lancs-history-30d"), # jobs per day in past 30 days
+    ("ac9419f3-88ad-4398-91d0-0763a4305d1e", "aws-athena-query-results-lancs-4h"),          # all columns from past 4 hours
+    ("4e8fb630-f56e-4217-a4fc-3107b8fe6cb0", "aws-athena-query-results-lancs-all-48h"),     # queue, duration, wallclock columns from past 48 hours
 ]
+
+from app import logger
+
 
 for query_id, bucket in queries:
     scheduler.add_job(run_query, "interval", seconds=600, args=(query_id, bucket))
 
 scheduler.start()
 
+
+
 def update_now():
+    threads = []
     for query_id, bucket in queries:
-        run_query(query_id, bucket)
+        t = threading.Thread(target=run_query, args=(query_id, bucket))
+        t.start()
+        threads.append(t)
+        
+    for thread in threads:
+        thread.join()
+
+start_time = time.time()
+
+
+print("Running queries now")
+update_now()
+
+print("Preloading latest csv data")
+# Preload data
+threads = []
+for query_id, bucket in queries:
+    t = threading.Thread(target=Datasources.get_latest_data_for, args=(bucket,))
+    t.start()
+    threads.append(t)
+
+for thread in threads:
+    thread.join()
+
+print("Done ({:.02f}s)".format(time.time()-start_time))

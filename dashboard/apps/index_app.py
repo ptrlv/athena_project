@@ -83,7 +83,7 @@ def generate_plot(dataframe, limit=10, search_term=None, filtered_by=None):
             dataframe = dataframe[dataframe["match_apf_queue"].str.contains(search_term, case=False)]"""
     
     dataframe = dataframe[dataframe["match_apf_queue"].isin(filtered_by)]
-    dataframe["order"] = dataframe["match_apf_queue"].apply(lambda x: filtered_by.index(x))
+    dataframe.insert(len(dataframe.columns), "order", dataframe.loc[:, "match_apf_queue"].apply(lambda x: filtered_by.index(x)))
     dataframe = dataframe.sort_values(by="order")
     dataframe.drop("order", axis=1)
     
@@ -109,7 +109,7 @@ def generate_plot(dataframe, limit=10, search_term=None, filtered_by=None):
     
     data = [trace1, trace2]
     layout = go.Layout(
-        title="Top 10 queues by most short jobs (30 days)",
+        title="Queue comparison (30 days)",
         barmode="stack",
         margin=dict(
             l=275,
@@ -121,6 +121,7 @@ def generate_plot(dataframe, limit=10, search_term=None, filtered_by=None):
         yaxis = go.YAxis(
             fixedrange=True,
         ),
+        height=int(180+270*min(limit, len(dataframe))/10),
     )
     return {
         "data": data,
@@ -150,60 +151,31 @@ def generate_layout():
                 ]),
                 dcc.Graph(id="queue-comparison", figure={}, config={'displayModeBar': False}),
                 ],
-                style=dict(
-                    width="50%",
-                    float="left",
-                ),
+                className="index-grid-left",
+                # style=dict(
+                #     width="50%",
+                #     float="left",
+                # ),
             ),
             html.Div([
-                #html.Div(style={"width":"100%", "height":"1", "overflow":"hidden",}),
-                # html.Div([
-                #     dcc.Input(id='queue-search', value='', type="text", style={"display":"inline-block"}),
-                #     html.Div(" ", id="table-search-feedback", style={"display":"inline-block", "margin-left": 10})
-                # ]),
-                # generate_table(" ", Datasources.get_latest_data_for("aws-athena-query-results-lancs-30d"), 10),
-                generate_datatable(),
+                    generate_datatable(),
                 ],
-                style=dict(
-                    width="50%",
-                    float="right",
-                ),
+                className="index-grid-right",
+                # style={
+                #     "width":"50%",
+                #     "float":"right",
+                #     "height":"100%",
+                #     "min-height":"500px",
+                #     "display":"table",
+                # }
             ),
             
         ],
+        className="index-grid-container",
+        # style={
+        #     "height":"100%",
+        #     "display":"flex",
+        # }
     )
     
     return layout
-
-
-
-# @app.callback(
-#     Output("queue-comparison", "figure"),
-#     [Input(component_id='queue-search', component_property='value')]
-# )
-# def update_plot(input_value):
-#     return generate_plot(Datasources.get_latest_data_for("aws-athena-query-results-lancs-30d"),
-#         search_term=input_value)
-#
-#
-# @app.callback(
-#     Output(component_id='queue-table', component_property='children'),
-#     [Input(component_id='queue-search', component_property='value')]
-# )
-# def update_output_div(input_value):
-#     return generate_table(input_value, Datasources.get_latest_data_for("aws-athena-query-results-lancs-30d"))
-#
-#
-# @app.callback(
-#     Output("table-search-feedback", "children"),
-#     [Input("queue-search", "value")]
-# )
-# def update_search_feedback(input_value):
-#     df = Datasources.get_latest_data_for("aws-athena-query-results-lancs-30d")
-#     matching_results = len([q for q in df["match_apf_queue"] if input_value.lower() in q.lower()])
-#     showing, hidden = min(matching_results, 10), max(0, matching_results-10)
-#
-#     return "Showing {} results ({} hidden)".format(showing, hidden)
-
-if __name__ == '__main__':
-    app.run_server()

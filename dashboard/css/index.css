@@ -4,3 +4,53 @@
     color: #1EAEDB;
     text-decoration: underline;
 }
+
+.react-grid-Main{
+    /*height: 95%;*/
+}
+
+.react-grid-Container{
+    height: 100%;
+}
+
+.react-grid-Grid{
+    height: 100% !important;
+}
+
+.react-grid-Canvas{
+    height: 100% !important;
+}
+
+.index-grid-container {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 90% 10%;
+}
+
+.index-grid-left {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 1;
+}
+
+.index-grid-right {
+    grid-column-start: 2;
+    grid-row-start: 1;
+}
+
+body {
+    margin: 0px;
+}
+
+/*html, body, #react-entry-point, #_dash-app-content, #page-content {
+    height: 100%;
+}
+
+#react-entry-point > div {
+    height: 100%;
+}
+
+#_dash-app-content > div {
+    height: 100%;
+}*/

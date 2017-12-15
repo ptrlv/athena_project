@@ -146,6 +146,65 @@ def generate_plot_30d(queue_name):
     
     return dcc.Graph(id="queue-30d", figure=fig, config={'displayModeBar': False})
 
+
+def generate_distribution(queue_name, ten_minutes=False):
+    dataframe = Datasources.get_latest_data_for("aws-athena-query-results-lancs-4h")
+    dataframe = dataframe[dataframe["match_apf_queue"] == queue_name]
+    
+    if len(dataframe) == 0:
+        max_duration = 600
+    else:
+        max_duration = max(dataframe["duration"])
+    
+    x_range = [0, max_duration]
+    
+    if ten_minutes:
+        dataframe = dataframe[dataframe["duration"] <= 600]
+        x_range = [0, 600]
+    
+    if ten_minutes:
+        hist = go.Histogram(x=dataframe["duration"], xbins={"start":0, "end":600, "size":12})
+    else:
+        # bins of minimum width 5 seconds
+        bins = int(max_duration/5)
+        # max 100 bins
+        bins = min(bins, 100)
+        hist = go.Histogram(x=dataframe["duration"], nbinsx=bins)
+    
+    layout = go.Layout(
+        title="Duration  distribution in past 4 hours{}".format(" (duration < 10m)" if ten_minutes else ""),
+        xaxis = go.XAxis(
+            title="Job duration (s)",
+            fixedrange=True,
+            showgrid=True,
+            gridcolor="darkgrey",
+            autorange=False,
+            range=x_range,
+        ),
+        yaxis = go.YAxis(
+            title="Number of jobs",
+            fixedrange=True,
+            showgrid=True,
+            gridcolor="darkgrey",
+        ),
+        margin=go.Margin(
+            l=55,
+            r=45,
+            b=50,
+            t=30,
+            pad=4
+        ),
+    )
+    
+    fig = {
+        "data": [hist,],
+        "layout": layout,
+    }
+    
+    
+    return dcc.Graph(id="distribution-histogram-{}".format(["1", "2"][ten_minutes]), figure=fig, config={'displayModeBar': False})
+
+
 def generate_layout(queue_name):
     plot = generate_plot_24h(queue_name)
     if plot is None:
@@ -175,6 +234,25 @@ def generate_layout(queue_name):
         style={
         
         }),
+        
+        html.Div([
+            html.Div([
+                generate_distribution(queue_name),
+            ],
+            style={
+                "width":"50%",
+                "display":"inline-block",
+            }),
+
+            html.Div([
+                generate_distribution(queue_name, ten_minutes=True),
+            ],
+            style={
+                "width":"50%",
+                "display":"inline-block",
+            }),
+            
+        ],)
         
     ]
     return layout

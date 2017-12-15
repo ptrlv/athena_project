@@ -6,6 +6,10 @@ $.initialize("div.react-grid-Toolbar", function() {
 	$(this).hide();
 });
 
+$.initialize("div._dash-undo-redo", function() {
+    $(this).hide();
+});
+
 $.initialize("div.react-grid-Cell .react-grid-Cell__value div span div", function() {
     if ($(this)[0].parentElement.parentElement.parentElement.parentElement.style.left == "0px") {
         $(this)[0].onclick = function () {
